@@ -12,6 +12,12 @@ V="$(/usr/bin/sw_vers -productVersion)"; M="${V%%.*}"
 CLT="/Library/Developer/CommandLineTools"
 [[ -x "$CLT/usr/bin/swiftc" ]] || fail "Install standalone Command Line Tools using xcode-select --install. Do not install Xcode.app."
 export DEVELOPER_DIR="$CLT" PATH="$CLT/usr/bin:$PATH" MACOSX_DEPLOYMENT_TARGET=11.0
+# Detect a known broken/mixed Command Line Tools installation.
+if [[ -f "$CLT/usr/include/swift/module.modulemap" && -f "$CLT/usr/include/swift/bridging.modulemap" ]] &&
+   /usr/bin/grep -q 'module SwiftBridging' "$CLT/usr/include/swift/module.modulemap" &&
+   /usr/bin/grep -q 'module SwiftBridging' "$CLT/usr/include/swift/bridging.modulemap"; then
+  fail "Your Command Line Tools installation contains two SwiftBridging module maps (a stale mixed-version CLT install). This is a Mac toolchain problem, not an OceanForge source error. Repair it once: run 'sudo rm -rf /Library/Developer/CommandLineTools' then 'xcode-select --install' and finish installing Command Line Tools. This does NOT install Xcode.app. Then rerun this installer."
+fi
 T="$(/usr/bin/mktemp -d)"; trap '/bin/rm -rf "$T"' EXIT
 printf 'Downloading OceanForge source...\n'
 /usr/bin/curl --fail --location --silent --show-error --retry 3 "https://codeload.github.com/$REPO/tar.gz/refs/heads/$BRANCH" -o "$T/src.tgz" || fail "GitHub source archive returned an error."
