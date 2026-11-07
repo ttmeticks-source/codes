@@ -2,40 +2,23 @@
 
 An original 3D ship-and-ocean sandbox for macOS, built with Swift, SceneKit and AppKit.
 
-## System requirements
+## Download the app
 
-- macOS 11.0 (Big Sur) or later.
-- Apple's standalone **Command Line Tools** with Swift.
-- Internet access for downloading the source.
-- No Xcode.app, Xcode project, or Xcode installation is required.
+**No compiler, Xcode, Command Line Tools, or Terminal build is needed.**
 
-## Install using Terminal
+Download the ready-made app bundle:
 
-Copy and paste this single command:
+[Download OceanForge for macOS](https://github.com/ttmeticks-source/codes/releases/download/latest/OceanForge-macOS.zip)
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/ttmeticks-source/codes/main/install.sh | bash
-```
+1. Open the downloaded ZIP.
+2. Drag `OceanForge.app` into Applications.
+3. Open OceanForge.
 
-The installer:
-1. Confirms the Mac is running macOS 11.0 or newer.
-2. Uses the standalone Command Line Tools toolchain at `/Library/Developer/CommandLineTools`.
-3. Downloads the source archive directly from GitHub (it does not use the GitHub Releases API).
-4. Builds the app with Swift Package Manager.
-5. Creates and ad-hoc signs `OceanForge.app`.
-6. Installs it in `/Applications`, or `~/Applications` if the system Applications folder is not writable.
+Requires macOS 11.0 (Big Sur) or later. The downloadable app is built by GitHub Actions on a macOS runner and targets macOS 11.0.
 
-If Command Line Tools are missing, install them with:
+## Build from source (optional)
 
-```bash
-xcode-select --install
-```
-
-That command installs Apple's command-line developer tools only; you do not need to install or open the Xcode app. After the installation finishes, run the OceanForge install command again.
-
-## Build manually
-
-From a clone of this repository:
+Only needed if you want to compile the project yourself:
 
 ```bash
 chmod +x scripts/build-app.sh
@@ -46,6 +29,6 @@ The app bundle is created at `build/OceanForge.app`.
 
 ## Compatibility
 
-The installer blocks macOS versions older than 11.0. The app bundle also declares `LSMinimumSystemVersion=11.0`.
+The app bundle declares `LSMinimumSystemVersion=11.0`.
 
 OceanForge is an original project inspired by the ship-and-water sandbox genre. It does not contain Floating Sandbox's proprietary code or assets.
