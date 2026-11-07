@@ -38,9 +38,6 @@ CLT="/Library/Developer/CommandLineTools"
 if [[ -x "$CLT/usr/bin/swift" ]]; then
   export DEVELOPER_DIR="$CLT"
   export PATH="$CLT/usr/bin:$PATH"
-elif [[ -x /usr/bin/swift ]]; then
-  # Some macOS setups expose the standalone Swift toolchain here.
-  :
 else
   fail "Swift was not found. Install Apple's standalone Command Line Tools with: xcode-select --install . You do NOT need to install or open the Xcode app. Then run this installer again."
 fi
