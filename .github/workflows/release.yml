@@ -1,0 +1,23 @@
+name: Build and release macOS app
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build app (minimum macOS 11)
+        run: |
+          chmod +x scripts/build-app.sh
+          VERSION="${GITHUB_REF_NAME#v}" ./scripts/build-app.sh
+      - name: Package app
+        run: ditto -c -k --sequesterRsrc --keepParent build/OceanForge.app OceanForge-macOS.zip
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: OceanForge-macOS.zip
+          generate_release_notes: true
