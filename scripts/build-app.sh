@@ -8,7 +8,10 @@ swift build -c release
 BIN="$(swift build -c release --show-bin-path)/OceanForge"
 APP="$ROOT/build/OceanForge.app"
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"\nif [[ -f "$ROOT/Assets/OceanForge.icns.base64" ]]; then\n  base64 -D "$ROOT/Assets/OceanForge.icns.base64" > "$APP/Contents/Resources/OceanForge.icns"\nfi
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+if [[ -f "$ROOT/Assets/OceanForge.icns.base64" ]]; then
+  base64 -D "$ROOT/Assets/OceanForge.icns.base64" > "$APP/Contents/Resources/OceanForge.icns"
+fi
 cp "$BIN" "$APP/Contents/MacOS/OceanForge"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -21,7 +24,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <key>CFBundleShortVersionString</key><string>$VERSION</string>
 <key>CFBundleExecutable</key><string>OceanForge</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>LSMinimumSystemVersion</key><string>11.0</string>\n<key>CFBundleIconFile</key><string>OceanForge</string>
+<key>LSMinimumSystemVersion</key><string>11.0</string>
+<key>CFBundleIconFile</key><string>OceanForge</string>
 <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
 PLIST
