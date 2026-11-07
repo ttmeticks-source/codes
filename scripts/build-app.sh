@@ -1,12 +1,16 @@
 #!/bin/bash
-set -euo pipefail
+set -Eeuo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 VERSION="${VERSION:-1.0.0}"
 export MACOSX_DEPLOYMENT_TARGET=11.0
-swift build -c release
-BIN="$(swift build -c release --show-bin-path)/OceanForge"
+CLT="/Library/Developer/CommandLineTools"
+if [[ -x "$CLT/usr/bin/swiftc" ]]; then export DEVELOPER_DIR="$CLT" PATH="$CLT/usr/bin:$PATH"; fi
+ARCH="$(uname -m)"
+BIN="$ROOT/build/OceanForge"
 APP="$ROOT/build/OceanForge.app"
+mkdir -p "$ROOT/build"
+swiftc -O -target "${ARCH}-apple-macosx11.0" -framework AppKit -framework SceneKit -framework SwiftUI -framework QuartzCore Sources/OceanForge/main.swift -o "$BIN"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 if [[ -f "$ROOT/Assets/OceanForge.icns.base64" ]]; then
