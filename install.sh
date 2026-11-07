@@ -20,7 +20,7 @@ fail() {
 }
 
 printf '========================================\n'
-printf '        OceanForge macOS Installer      \n'
+printf '        OceanForge macOS Installer v2   \n'
 printf '========================================\n\n'
 
 [[ "$(/usr/bin/uname -s)" == "Darwin" ]] || fail "This installer only works on macOS."
