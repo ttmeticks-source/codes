@@ -1,50 +1,23 @@
 #!/bin/bash
 set -Eeuo pipefail
-REPO="ttmeticks-source/codes"
-BRANCH="main"
 APP="OceanForge"
 MIN=11
 fail(){ printf '\nERROR: %s\n' "$1" >&2; exit 1; }
-printf '\n=== OCEANFORGE INSTALLER 4.0 ===\n'
+printf '\n=== OCEANFORGE ONE-COMMAND INSTALLER ===\n'
 [[ "$(/usr/bin/uname -s)" == Darwin ]] || fail "macOS only."
 V="$(/usr/bin/sw_vers -productVersion)"; M="${V%%.*}"
 [[ "$M" =~ ^[0-9]+$ ]] && (( M >= MIN )) || fail "Requires macOS 11 or newer; found $V."
-CLT="/Library/Developer/CommandLineTools"
-[[ -x "$CLT/usr/bin/swiftc" ]] || fail "Install standalone Command Line Tools using xcode-select --install. Do not install Xcode.app."
-export DEVELOPER_DIR="$CLT" PATH="$CLT/usr/bin:$PATH" MACOSX_DEPLOYMENT_TARGET=11.0
-# Detect a known broken/mixed Command Line Tools installation.
-if [[ -f "$CLT/usr/include/swift/module.modulemap" && -f "$CLT/usr/include/swift/bridging.modulemap" ]] &&
-   /usr/bin/grep -q 'module SwiftBridging' "$CLT/usr/include/swift/module.modulemap" &&
-   /usr/bin/grep -q 'module SwiftBridging' "$CLT/usr/include/swift/bridging.modulemap"; then
-  fail "Your Command Line Tools installation contains two SwiftBridging module maps (a stale mixed-version CLT install). This is a Mac toolchain problem, not an OceanForge source error. Repair it once: run 'sudo rm -rf /Library/Developer/CommandLineTools' then 'xcode-select --install' and finish installing Command Line Tools. This does NOT install Xcode.app. Then rerun this installer."
-fi
 T="$(/usr/bin/mktemp -d)"; trap '/bin/rm -rf "$T"' EXIT
-printf 'Downloading OceanForge source...\n'
-/usr/bin/curl --fail --location --silent --show-error --retry 3 "https://codeload.github.com/$REPO/tar.gz/refs/heads/$BRANCH" -o "$T/src.tgz" || fail "GitHub source archive returned an error."
-/bin/mkdir "$T/src"; /usr/bin/tar -xzf "$T/src.tgz" -C "$T/src" --strip-components=1
-[[ -f "$T/src/Sources/OceanForge/main.swift" ]] || fail "Source archive is missing the Swift app source."
-cd "$T/src"
-printf 'Compiling directly with swiftc (no Swift Package Manager)...\n'
-ARCH="$(/usr/bin/uname -m)"
-swiftc -O -target "${ARCH}-apple-macosx11.0" -framework AppKit -framework SceneKit -framework SwiftUI -framework QuartzCore "Sources/OceanForge/main.swift" -o "$T/$APP" || fail "Swift compilation failed; compiler output is above."
-[[ -x "$T/$APP" ]] || fail "Executable missing after compilation."
-OUT="$T/$APP.app"; /bin/mkdir -p "$OUT/Contents/MacOS" "$OUT/Contents/Resources"
-/bin/cp "$T/$APP" "$OUT/Contents/MacOS/$APP"
-if [[ -f "$T/src/Assets/OceanForge.icns.base64" ]]; then
-  /usr/bin/base64 -D "$T/src/Assets/OceanForge.icns.base64" > "$OUT/Contents/Resources/OceanForge.icns"
-fi
-/usr/bin/plutil -create xml1 "$OUT/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c "Add :CFBundleName string $APP" "$OUT/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string $APP" "$OUT/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.ttmeticks.oceanforge" "$OUT/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c "Add :CFBundleExecutable string $APP" "$OUT/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c "Add :CFBundlePackageType string APPL" "$OUT/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c "Add :CFBundleVersion string 1.0.0" "$OUT/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string 1.0.0" "$OUT/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c "Add :LSMinimumSystemVersion string 11.0" "$OUT/Contents/Info.plist"
-if [[ -f "$OUT/Contents/Resources/OceanForge.icns" ]]; then /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string OceanForge" "$OUT/Contents/Info.plist"; fi
-/usr/bin/codesign --force --deep --sign - "$OUT" >/dev/null 2>&1 || fail "Could not sign app."
-DEST="$HOME/Applications"; /bin/mkdir -p "$DEST"; /bin/rm -rf "$DEST/$APP.app"; /usr/bin/ditto "$OUT" "$DEST/$APP.app"
+URL="https://github.com/ttmeticks-source/codes/releases/download/latest/OceanForge-macOS.zip"
+printf 'Downloading prebuilt universal macOS app...\n'
+/usr/bin/curl --fail --location --silent --show-error --retry 3 "$URL" -o "$T/OceanForge.zip" || fail "The prebuilt app release is not ready yet. Try again in a minute."
+/usr/bin/unzip -q "$T/OceanForge.zip" -d "$T" || fail "The app archive could not be unpacked."
+[[ -d "$T/OceanForge.app" ]] || fail "The release archive did not contain OceanForge.app."
+/usr/bin/codesign --verify --deep --strict "$T/OceanForge.app" >/dev/null 2>&1 || fail "The downloaded app failed its code-signature integrity check."
+DEST="$HOME/Applications"
+/bin/mkdir -p "$DEST"
+/bin/rm -rf "$DEST/$APP.app"
+/usr/bin/ditto "$T/OceanForge.app" "$DEST/$APP.app"
 printf '\nInstalled: %s/%s.app\n' "$DEST" "$APP"
-printf 'Minimum macOS: 11.0 | Build method: direct swiftc | Toolchain: standalone Command Line Tools\n'
+printf 'No Xcode, Swift compiler, or Command Line Tools required on this Mac.\n'
 /usr/bin/open "$DEST/$APP.app"
